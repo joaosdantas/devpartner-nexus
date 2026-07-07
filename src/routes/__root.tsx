@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "DEV Partner Workspace" },
+      { name: "description", content: "Workspace premium para gerenciar demandas, projetos, horas e clientes da DEV Partner." },
+      { property: "og:description", content: "Workspace premium para gerenciar demandas, projetos, horas e clientes da DEV Partner." },
+      { name: "twitter:description", content: "Workspace premium para gerenciar demandas, projetos, horas e clientes da DEV Partner." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6057498b-b8e4-41b4-b2c6-42728d1e3e00/id-preview-012d2e19--864bc49a-219c-42d0-a3c6-15afcfd39ca7.lovable.app-1783442054441.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6057498b-b8e4-41b4-b2c6-42728d1e3e00/id-preview-012d2e19--864bc49a-219c-42d0-a3c6-15afcfd39ca7.lovable.app-1783442054441.png" },
     ],
     links: [
       {
