@@ -1,5 +1,8 @@
 import * as React from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, Settings, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,16 +21,26 @@ interface UserMenuProps {
 }
 
 export function UserMenu({
-  name = "Marco Silva",
-  email = "marco@devpartner.com",
+  name = "Usuário",
+  email = "",
   avatarUrl,
 }: UserMenuProps) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const initials = name
     .split(" ")
     .map((n) => n[0])
     .slice(0, 2)
     .join("")
-    .toUpperCase();
+    .toUpperCase() || "U";
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   return (
     <DropdownMenu>
@@ -63,7 +76,10 @@ export function UserMenu({
           <Settings /> Preferências
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={handleSignOut}
+        >
           <LogOut /> Sair
         </DropdownMenuItem>
       </DropdownMenuContent>
