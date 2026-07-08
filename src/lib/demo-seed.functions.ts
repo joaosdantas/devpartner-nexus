@@ -87,7 +87,8 @@ export const seedDemoEnvironment = createServerFn({ method: "POST" }).handler(
       .eq("tier", "pro")
       .maybeSingle();
 
-    // Ensure "Agência Demo" client exists linked to PRO.
+    // Ensure "Agência Demo" client exists linked to PRO, with the demo 30h override.
+    const AGENCY_HOURS = 30;
     const { data: existingClient } = await supabaseAdmin
       .from("clients")
       .select("id")
@@ -103,7 +104,7 @@ export const seedDemoEnvironment = createServerFn({ method: "POST" }).handler(
           contact_name: "Agência Demo",
           email: "agencia@teste.com",
           plan_id: proPlan?.id ?? null,
-          monthly_hours: proPlan?.monthly_hours ?? 30,
+          monthly_hours: AGENCY_HOURS,
           status: "active",
         })
         .select("id")
@@ -115,7 +116,7 @@ export const seedDemoEnvironment = createServerFn({ method: "POST" }).handler(
         .from("clients")
         .update({
           plan_id: proPlan?.id ?? null,
-          monthly_hours: proPlan?.monthly_hours ?? 30,
+          monthly_hours: AGENCY_HOURS,
           status: "active",
         })
         .eq("id", clientId);
