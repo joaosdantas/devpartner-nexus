@@ -48,10 +48,10 @@ function LandingPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard/cliente">Sou cliente</Link>
+            <Link to="/auth">Sou cliente</Link>
           </Button>
           <Button variant="primary" size="sm" asChild>
-            <Link to="/dashboard">Entrar no workspace</Link>
+            <Link to="/auth">Entrar no workspace</Link>
           </Button>
         </div>
       </header>
@@ -77,12 +77,12 @@ function LandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button variant="primary" size="lg" asChild>
-              <Link to="/dashboard">
+              <Link to="/auth">
                 Ver dashboard admin <ArrowRight />
               </Link>
             </Button>
             <Button variant="secondary" size="lg" asChild>
-              <Link to="/dashboard/cliente">Ver visão do cliente</Link>
+              <Link to="/auth">Ver visão do cliente</Link>
             </Button>
           </div>
         </motion.div>

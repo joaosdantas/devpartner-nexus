@@ -9,14 +9,18 @@ import { UserMenu } from "./user-menu";
 import { WorkspaceSwitcher } from "./workspace-switcher";
 import { Logo } from "./logo";
 
+import type { SessionContext } from "@/lib/session.functions";
+
 export function AppTopbar({
   breadcrumb,
   onOpenPalette,
   mobileNav,
+  session,
 }: {
   breadcrumb?: CrumbItem[];
   onOpenPalette?: () => void;
   mobileNav?: React.ReactNode;
+  session?: SessionContext;
 }) {
   return (
     <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border/70 bg-background/70 px-3 backdrop-blur md:px-5">
@@ -71,7 +75,11 @@ export function AppTopbar({
           <Search />
         </Button>
         <NotificationsMenu />
-        <UserMenu />
+        <UserMenu
+          name={session?.fullName ?? undefined}
+          email={session?.email ?? undefined}
+          avatarUrl={session?.avatarUrl}
+        />
       </div>
     </header>
   );

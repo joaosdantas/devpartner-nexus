@@ -32,30 +32,47 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const GROUPS: NavGroup[] = [
+const ADMIN_GROUPS: NavGroup[] = [
   {
     items: [
-      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-      { label: "Demandas", to: "/dashboard", icon: ListChecks, badge: "12" },
-      { label: "Projetos", to: "/dashboard", icon: FolderKanban },
-      { label: "Timer", to: "/dashboard", icon: Timer },
+      { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },
+      { label: "Demandas", to: "/admin/dashboard", icon: ListChecks },
+      { label: "Projetos", to: "/admin/dashboard", icon: FolderKanban },
+      { label: "Timer", to: "/admin/dashboard", icon: Timer },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { label: "Clientes", to: "/dashboard", icon: Users },
-      { label: "Calendário", to: "/dashboard", icon: Calendar },
-      { label: "Relatórios", to: "/dashboard", icon: BarChart3 },
-      { label: "Faturamento", to: "/dashboard", icon: FileText },
+      { label: "Clientes", to: "/admin/dashboard", icon: Users },
+      { label: "Calendário", to: "/admin/dashboard", icon: Calendar },
+      { label: "Relatórios", to: "/admin/dashboard", icon: BarChart3 },
+      { label: "Faturamento", to: "/admin/dashboard", icon: FileText },
     ],
   },
   {
     label: "Workspace",
     items: [
-      { label: "Bee Assistant", to: "/dashboard", icon: Sparkles },
-      { label: "Mensagens", to: "/dashboard", icon: MessageSquare },
-      { label: "Configurações", to: "/dashboard", icon: Settings },
+      { label: "Bee Assistant", to: "/admin/dashboard", icon: Sparkles },
+      { label: "Mensagens", to: "/admin/dashboard", icon: MessageSquare },
+      { label: "Configurações", to: "/admin/dashboard", icon: Settings },
+    ],
+  },
+];
+
+const WORKSPACE_GROUPS: NavGroup[] = [
+  {
+    items: [
+      { label: "Dashboard", to: "/workspace/dashboard", icon: LayoutDashboard },
+      { label: "Demandas", to: "/workspace/dashboard", icon: ListChecks },
+      { label: "Projetos", to: "/workspace/dashboard", icon: FolderKanban },
+    ],
+  },
+  {
+    label: "Conta",
+    items: [
+      { label: "Mensagens", to: "/workspace/dashboard", icon: MessageSquare },
+      { label: "Configurações", to: "/workspace/dashboard", icon: Settings },
     ],
   },
 ];
@@ -63,11 +80,14 @@ const GROUPS: NavGroup[] = [
 export function AppSidebar({
   collapsed,
   onToggle,
+  role,
 }: {
   collapsed: boolean;
   onToggle: () => void;
+  role: "admin" | "workspace";
 }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const groups = role === "admin" ? ADMIN_GROUPS : WORKSPACE_GROUPS;
 
   return (
     <aside
@@ -82,7 +102,7 @@ export function AppSidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 pb-3">
-        {GROUPS.map((g, gi) => (
+        {groups.map((g, gi) => (
           <div key={gi} className="mt-2">
             {g.label && !collapsed && (
               <p className="px-3 pb-1 pt-3 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/70">
