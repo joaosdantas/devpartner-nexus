@@ -99,17 +99,13 @@ function ClientsPage() {
                 icon={Building2}
                 title="Nenhum cliente cadastrado"
                 description="Comece cadastrando seu primeiro cliente para vincular projetos e demandas."
-                action={
-                  <Button
-                    onClick={() => {
-                      setEditing(null);
-                      setDialogOpen(true);
-                    }}
-                  >
-                    <Plus className="mr-1.5 size-4" />
-                    Novo cliente
-                  </Button>
-                }
+                action={{
+                  label: "Novo cliente",
+                  onClick: () => {
+                    setEditing(null);
+                    setDialogOpen(true);
+                  },
+                }}
               />
             </div>
           ) : (
@@ -117,7 +113,6 @@ function ClientsPage() {
               data={data}
               searchable
               searchPlaceholder="Buscar por empresa, contato..."
-              searchKeys={["company_name", "contact_name", "email"]}
               columns={[
                 {
                   key: "company_name",
