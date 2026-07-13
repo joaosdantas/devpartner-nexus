@@ -110,8 +110,8 @@ export function TaskDetailView({ taskId, session, role }: Props) {
   });
 
   const updateFieldMut = useMutation({
-    mutationFn: async (patch: Record<string, unknown>) => {
-      const { error } = await supabase.from("tasks").update(patch).eq("id", taskId);
+    mutationFn: async (patch: { status?: string; priority?: string }) => {
+      const { error } = await supabase.from("tasks").update(patch as never).eq("id", taskId);
       if (error) throw error;
     },
     onSuccess: () => {
