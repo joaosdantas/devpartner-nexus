@@ -36,15 +36,14 @@ const ADMIN_GROUPS: NavGroup[] = [
   {
     items: [
       { label: "Dashboard", to: "/admin/dashboard", icon: LayoutDashboard },
-      { label: "Demandas", to: "/admin/dashboard", icon: ListChecks },
-      { label: "Projetos", to: "/admin/dashboard", icon: FolderKanban },
-      { label: "Timer", to: "/admin/dashboard", icon: Timer },
+      { label: "Demandas", to: "/admin/tasks", icon: ListChecks },
+      { label: "Projetos", to: "/admin/projects", icon: FolderKanban },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { label: "Clientes", to: "/admin/dashboard", icon: Users },
+      { label: "Clientes", to: "/admin/clients", icon: Users },
       { label: "Calendário", to: "/admin/dashboard", icon: Calendar },
       { label: "Relatórios", to: "/admin/dashboard", icon: BarChart3 },
       { label: "Faturamento", to: "/admin/dashboard", icon: FileText },
@@ -64,8 +63,7 @@ const WORKSPACE_GROUPS: NavGroup[] = [
   {
     items: [
       { label: "Dashboard", to: "/workspace/dashboard", icon: LayoutDashboard },
-      { label: "Demandas", to: "/workspace/dashboard", icon: ListChecks },
-      { label: "Projetos", to: "/workspace/dashboard", icon: FolderKanban },
+      { label: "Demandas", to: "/workspace/tasks", icon: ListChecks },
     ],
   },
   {
