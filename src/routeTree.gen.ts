@@ -18,6 +18,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.
 import { Route as AuthenticatedWorkspaceIndexRouteImport } from './routes/_authenticated.workspace.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedWorkspaceDashboardRouteImport } from './routes/_authenticated.workspace.dashboard'
+import { Route as AuthenticatedAdminTasksRouteImport } from './routes/_authenticated.admin.tasks'
 import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated.admin.projects'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated.admin.dashboard'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated.admin.clients'
@@ -69,6 +70,11 @@ const AuthenticatedWorkspaceDashboardRoute =
     path: '/dashboard',
     getParentRoute: () => AuthenticatedWorkspaceRoute,
   } as any)
+const AuthenticatedAdminTasksRoute = AuthenticatedAdminTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminProjectsRoute =
   AuthenticatedAdminProjectsRouteImport.update({
     id: '/projects',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/workspace/': typeof AuthenticatedWorkspaceIndexRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/workspace': typeof AuthenticatedWorkspaceIndexRoute
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
+  '/_authenticated/admin/tasks': typeof AuthenticatedAdminTasksRoute
   '/_authenticated/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/workspace/': typeof AuthenticatedWorkspaceIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/dashboard'
     | '/admin/projects'
+    | '/admin/tasks'
     | '/workspace/dashboard'
     | '/admin/'
     | '/workspace/'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/dashboard'
     | '/admin/projects'
+    | '/admin/tasks'
     | '/workspace/dashboard'
     | '/admin'
     | '/workspace'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/clients'
     | '/_authenticated/admin/dashboard'
     | '/_authenticated/admin/projects'
+    | '/_authenticated/admin/tasks'
     | '/_authenticated/workspace/dashboard'
     | '/_authenticated/admin/'
     | '/_authenticated/workspace/'
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkspaceDashboardRouteImport
       parentRoute: typeof AuthenticatedWorkspaceRoute
     }
+    '/_authenticated/admin/tasks': {
+      id: '/_authenticated/admin/tasks'
+      path: '/tasks'
+      fullPath: '/admin/tasks'
+      preLoaderRoute: typeof AuthenticatedAdminTasksRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/projects': {
       id: '/_authenticated/admin/projects'
       path: '/projects'
@@ -302,6 +321,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRouteWithChildren
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRoute
+  AuthenticatedAdminTasksRoute: typeof AuthenticatedAdminTasksRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -309,6 +329,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRouteWithChildren,
   AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
   AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRoute,
+  AuthenticatedAdminTasksRoute: AuthenticatedAdminTasksRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
