@@ -91,7 +91,7 @@ function ClientDetailPage() {
       role="admin"
       session={session}
       breadcrumb={[
-        { label: "Clientes", href: "/admin/clients" },
+        { label: "Clientes", to: "/admin/clients" },
         { label: client?.company_name ?? "..." },
       ]}
     >
