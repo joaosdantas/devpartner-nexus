@@ -17,11 +17,14 @@ import { Route as AuthenticatedWorkspaceRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedWorkspaceIndexRouteImport } from './routes/_authenticated.workspace.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedWorkspaceTasksRouteImport } from './routes/_authenticated.workspace.tasks'
 import { Route as AuthenticatedWorkspaceDashboardRouteImport } from './routes/_authenticated.workspace.dashboard'
 import { Route as AuthenticatedAdminTasksRouteImport } from './routes/_authenticated.admin.tasks'
 import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated.admin.projects'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated.admin.dashboard'
 import { Route as AuthenticatedAdminClientsRouteImport } from './routes/_authenticated.admin.clients'
+import { Route as AuthenticatedWorkspaceTasksTaskIdRouteImport } from './routes/_authenticated.workspace.tasks.$taskId'
+import { Route as AuthenticatedAdminTasksTaskIdRouteImport } from './routes/_authenticated.admin.tasks.$taskId'
 import { Route as AuthenticatedAdminClientsClientIdRouteImport } from './routes/_authenticated.admin.clients.$clientId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -64,6 +67,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedWorkspaceTasksRoute =
+  AuthenticatedWorkspaceTasksRouteImport.update({
+    id: '/tasks',
+    path: '/tasks',
+    getParentRoute: () => AuthenticatedWorkspaceRoute,
+  } as any)
 const AuthenticatedWorkspaceDashboardRoute =
   AuthenticatedWorkspaceDashboardRouteImport.update({
     id: '/dashboard',
@@ -93,6 +102,18 @@ const AuthenticatedAdminClientsRoute =
     path: '/clients',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedWorkspaceTasksTaskIdRoute =
+  AuthenticatedWorkspaceTasksTaskIdRouteImport.update({
+    id: '/$taskId',
+    path: '/$taskId',
+    getParentRoute: () => AuthenticatedWorkspaceTasksRoute,
+  } as any)
+const AuthenticatedAdminTasksTaskIdRoute =
+  AuthenticatedAdminTasksTaskIdRouteImport.update({
+    id: '/$taskId',
+    path: '/$taskId',
+    getParentRoute: () => AuthenticatedAdminTasksRoute,
+  } as any)
 const AuthenticatedAdminClientsClientIdRoute =
   AuthenticatedAdminClientsClientIdRouteImport.update({
     id: '/$clientId',
@@ -109,11 +130,14 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
-  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRouteWithChildren
   '/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
+  '/workspace/tasks': typeof AuthenticatedWorkspaceTasksRouteWithChildren
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/workspace/': typeof AuthenticatedWorkspaceIndexRoute
   '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
+  '/admin/tasks/$taskId': typeof AuthenticatedAdminTasksTaskIdRoute
+  '/workspace/tasks/$taskId': typeof AuthenticatedWorkspaceTasksTaskIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -122,11 +146,14 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
-  '/admin/tasks': typeof AuthenticatedAdminTasksRoute
+  '/admin/tasks': typeof AuthenticatedAdminTasksRouteWithChildren
   '/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
+  '/workspace/tasks': typeof AuthenticatedWorkspaceTasksRouteWithChildren
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/workspace': typeof AuthenticatedWorkspaceIndexRoute
   '/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
+  '/admin/tasks/$taskId': typeof AuthenticatedAdminTasksTaskIdRoute
+  '/workspace/tasks/$taskId': typeof AuthenticatedWorkspaceTasksTaskIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -139,11 +166,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients': typeof AuthenticatedAdminClientsRouteWithChildren
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
-  '/_authenticated/admin/tasks': typeof AuthenticatedAdminTasksRoute
+  '/_authenticated/admin/tasks': typeof AuthenticatedAdminTasksRouteWithChildren
   '/_authenticated/workspace/dashboard': typeof AuthenticatedWorkspaceDashboardRoute
+  '/_authenticated/workspace/tasks': typeof AuthenticatedWorkspaceTasksRouteWithChildren
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/workspace/': typeof AuthenticatedWorkspaceIndexRoute
   '/_authenticated/admin/clients/$clientId': typeof AuthenticatedAdminClientsClientIdRoute
+  '/_authenticated/admin/tasks/$taskId': typeof AuthenticatedAdminTasksTaskIdRoute
+  '/_authenticated/workspace/tasks/$taskId': typeof AuthenticatedWorkspaceTasksTaskIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,9 +188,12 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/tasks'
     | '/workspace/dashboard'
+    | '/workspace/tasks'
     | '/admin/'
     | '/workspace/'
     | '/admin/clients/$clientId'
+    | '/admin/tasks/$taskId'
+    | '/workspace/tasks/$taskId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -171,9 +204,12 @@ export interface FileRouteTypes {
     | '/admin/projects'
     | '/admin/tasks'
     | '/workspace/dashboard'
+    | '/workspace/tasks'
     | '/admin'
     | '/workspace'
     | '/admin/clients/$clientId'
+    | '/admin/tasks/$taskId'
+    | '/workspace/tasks/$taskId'
   id:
     | '__root__'
     | '/'
@@ -187,9 +223,12 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/projects'
     | '/_authenticated/admin/tasks'
     | '/_authenticated/workspace/dashboard'
+    | '/_authenticated/workspace/tasks'
     | '/_authenticated/admin/'
     | '/_authenticated/workspace/'
     | '/_authenticated/admin/clients/$clientId'
+    | '/_authenticated/admin/tasks/$taskId'
+    | '/_authenticated/workspace/tasks/$taskId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -257,6 +296,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/workspace/tasks': {
+      id: '/_authenticated/workspace/tasks'
+      path: '/tasks'
+      fullPath: '/workspace/tasks'
+      preLoaderRoute: typeof AuthenticatedWorkspaceTasksRouteImport
+      parentRoute: typeof AuthenticatedWorkspaceRoute
+    }
     '/_authenticated/workspace/dashboard': {
       id: '/_authenticated/workspace/dashboard'
       path: '/dashboard'
@@ -292,6 +338,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminClientsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/workspace/tasks/$taskId': {
+      id: '/_authenticated/workspace/tasks/$taskId'
+      path: '/$taskId'
+      fullPath: '/workspace/tasks/$taskId'
+      preLoaderRoute: typeof AuthenticatedWorkspaceTasksTaskIdRouteImport
+      parentRoute: typeof AuthenticatedWorkspaceTasksRoute
+    }
+    '/_authenticated/admin/tasks/$taskId': {
+      id: '/_authenticated/admin/tasks/$taskId'
+      path: '/$taskId'
+      fullPath: '/admin/tasks/$taskId'
+      preLoaderRoute: typeof AuthenticatedAdminTasksTaskIdRouteImport
+      parentRoute: typeof AuthenticatedAdminTasksRoute
+    }
     '/_authenticated/admin/clients/$clientId': {
       id: '/_authenticated/admin/clients/$clientId'
       path: '/$clientId'
@@ -317,11 +377,25 @@ const AuthenticatedAdminClientsRouteWithChildren =
     AuthenticatedAdminClientsRouteChildren,
   )
 
+interface AuthenticatedAdminTasksRouteChildren {
+  AuthenticatedAdminTasksTaskIdRoute: typeof AuthenticatedAdminTasksTaskIdRoute
+}
+
+const AuthenticatedAdminTasksRouteChildren: AuthenticatedAdminTasksRouteChildren =
+  {
+    AuthenticatedAdminTasksTaskIdRoute: AuthenticatedAdminTasksTaskIdRoute,
+  }
+
+const AuthenticatedAdminTasksRouteWithChildren =
+  AuthenticatedAdminTasksRoute._addFileChildren(
+    AuthenticatedAdminTasksRouteChildren,
+  )
+
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminClientsRoute: typeof AuthenticatedAdminClientsRouteWithChildren
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
   AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRoute
-  AuthenticatedAdminTasksRoute: typeof AuthenticatedAdminTasksRoute
+  AuthenticatedAdminTasksRoute: typeof AuthenticatedAdminTasksRouteWithChildren
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -329,21 +403,39 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminClientsRoute: AuthenticatedAdminClientsRouteWithChildren,
   AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
   AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRoute,
-  AuthenticatedAdminTasksRoute: AuthenticatedAdminTasksRoute,
+  AuthenticatedAdminTasksRoute: AuthenticatedAdminTasksRouteWithChildren,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedWorkspaceTasksRouteChildren {
+  AuthenticatedWorkspaceTasksTaskIdRoute: typeof AuthenticatedWorkspaceTasksTaskIdRoute
+}
+
+const AuthenticatedWorkspaceTasksRouteChildren: AuthenticatedWorkspaceTasksRouteChildren =
+  {
+    AuthenticatedWorkspaceTasksTaskIdRoute:
+      AuthenticatedWorkspaceTasksTaskIdRoute,
+  }
+
+const AuthenticatedWorkspaceTasksRouteWithChildren =
+  AuthenticatedWorkspaceTasksRoute._addFileChildren(
+    AuthenticatedWorkspaceTasksRouteChildren,
+  )
+
 interface AuthenticatedWorkspaceRouteChildren {
   AuthenticatedWorkspaceDashboardRoute: typeof AuthenticatedWorkspaceDashboardRoute
+  AuthenticatedWorkspaceTasksRoute: typeof AuthenticatedWorkspaceTasksRouteWithChildren
   AuthenticatedWorkspaceIndexRoute: typeof AuthenticatedWorkspaceIndexRoute
 }
 
 const AuthenticatedWorkspaceRouteChildren: AuthenticatedWorkspaceRouteChildren =
   {
     AuthenticatedWorkspaceDashboardRoute: AuthenticatedWorkspaceDashboardRoute,
+    AuthenticatedWorkspaceTasksRoute:
+      AuthenticatedWorkspaceTasksRouteWithChildren,
     AuthenticatedWorkspaceIndexRoute: AuthenticatedWorkspaceIndexRoute,
   }
 
