@@ -136,23 +136,28 @@ export function TaskFormDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_roles")
-        .select("user_id, role, profiles!inner(id, full_name, email)")
+        .select("user_id, role")
         .in("role", ["admin", "manager", "developer"]);
       if (error) throw error;
       const seen = new Set<string>();
-      return (data ?? [])
+      const userIds = (data ?? [])
         .filter((r) => {
           if (seen.has(r.user_id)) return false;
           seen.add(r.user_id);
           return true;
         })
-        .map((r) => ({
-          id: r.user_id,
-          name:
-            (r.profiles as { full_name?: string; email?: string })?.full_name ??
-            (r.profiles as { email?: string })?.email ??
-            "Usuário",
-        }));
+        .map((r) => r.user_id);
+      if (userIds.length === 0) return [];
+
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", userIds);
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      return userIds.map((id) => ({
+        id,
+        name: byId.get(id)?.full_name ?? byId.get(id)?.email ?? "Usuário",
+      }));
     },
   });
 

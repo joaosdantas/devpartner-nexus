@@ -90,7 +90,7 @@ export const getAdminDashboard = createServerFn({ method: "GET" })
         .limit(8),
       supabase
         .from("activity_logs")
-        .select("id, action, entity_type, entity_id, created_at, profiles(full_name)")
+        .select("id, action, entity_type, entity_id, actor_id, created_at")
         .order("created_at", { ascending: false })
         .limit(10),
     ]);
@@ -100,6 +100,25 @@ export const getAdminDashboard = createServerFn({ method: "GET" })
         (acc, row) => acc + Number(row.seconds ?? 0),
         0,
       ) / 3600;
+
+    const actorIds = [
+      ...new Set(
+        (activityRes.data ?? [])
+          .map((a) => a.actor_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+
+    let actorNames: Record<string, string> = {};
+    if (actorIds.length > 0) {
+      const { data: actors } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", actorIds);
+      actorNames = Object.fromEntries(
+        (actors ?? []).map((p) => [p.id, p.full_name ?? ""]),
+      );
+    }
 
     return {
       totals: {
@@ -123,7 +142,7 @@ export const getAdminDashboard = createServerFn({ method: "GET" })
         entity_type: a.entity_type,
         entity_id: a.entity_id,
         created_at: a.created_at,
-        actor: (a.profiles as { full_name?: string } | null)?.full_name ?? null,
+        actor: (a.actor_id && actorNames[a.actor_id]) || null,
       })),
     };
   });

@@ -50,13 +50,22 @@ export function TaskDetailView({ taskId, session, role }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tasks")
-        .select(
-          "*, clients(id, company_name), projects(name, color), assignee:profiles!tasks_assignee_id_fkey(full_name, email)",
-        )
+        .select("*, clients(id, company_name), projects(name, color)")
         .eq("id", taskId)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      if (!data) return null;
+
+      const assigneeId = data.assignee_id;
+      if (assigneeId) {
+        const { data: assignee } = await supabase
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", assigneeId)
+          .maybeSingle();
+        return { ...data, assignee };
+      }
+      return { ...data, assignee: null };
     },
   });
 
@@ -65,11 +74,22 @@ export function TaskDetailView({ taskId, session, role }: Props) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("task_comments")
-        .select("*, profiles!task_comments_author_id_fkey(full_name, email)")
+        .select("*")
         .eq("task_id", taskId)
         .order("created_at");
       if (error) throw error;
-      return data;
+
+      const authorIds = [
+        ...new Set((data ?? []).map((c) => c.author_id).filter(Boolean)),
+      ];
+      if (authorIds.length === 0) return data ?? [];
+
+      const { data: authors } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .in("id", authorIds);
+      const byId = new Map((authors ?? []).map((p) => [p.id, p]));
+      return (data ?? []).map((c) => ({ ...c, profiles: byId.get(c.author_id) ?? null }));
     },
   });
 
@@ -221,21 +241,21 @@ export function TaskDetailView({ taskId, session, role }: Props) {
                   />
                 ) : (
                   (commentsQ.data ?? []).map((c) => {
-                    const author =
-                      (c.profiles as { full_name?: string; email?: string } | null)
-                        ?.full_name ??
-                      (c.profiles as { email?: string } | null)?.email ??
+                    const commentAuthor =
+                      (c as { profiles?: { full_name?: string; email?: string } | null })
+                        .profiles?.full_name ??
+                      (c as { profiles?: { email?: string } | null }).profiles?.email ??
                       "Usuário";
                     return (
                       <div key={c.id} className="flex gap-3">
                         <Avatar className="size-8">
                           <AvatarFallback className="text-xs">
-                            {author.slice(0, 2).toUpperCase()}
+                            {commentAuthor.slice(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0 flex-1 rounded-lg border border-border bg-card/40 p-3">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-medium">{author}</p>
+                            <p className="text-sm font-medium">{commentAuthor}</p>
                             <p className="text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(c.created_at), {
                                 addSuffix: true,
