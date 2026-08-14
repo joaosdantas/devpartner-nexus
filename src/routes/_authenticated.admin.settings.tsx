@@ -241,7 +241,9 @@ function CategoriesPanel() {
         onOpenChange={(v) => !v && setConfirm(null)}
         title="Remover categoria?"
         description="As demandas vinculadas ficarão sem categoria."
-        onConfirm={() => confirm && deleteMut.mutate(confirm.id)}
+        onConfirm={() => {
+          if (confirm) deleteMut.mutate(confirm.id);
+        }}
       />
     </Card>
   );
