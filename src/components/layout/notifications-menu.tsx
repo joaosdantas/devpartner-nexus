@@ -1,5 +1,8 @@
+// Notificações reais: lê a tabela `notifications` do usuário logado,
+// escuta novas em realtime e permite marcar como lidas.
 import * as React from "react";
 import { Bell, Check } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -10,51 +13,78 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-interface Notification {
-  id: string;
-  title: string;
-  description: string;
-  time: Date;
-  read?: boolean;
-  color?: "primary" | "success" | "warning" | "info";
-}
+type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+type NotificationType = Database["public"]["Enums"]["notification_type"];
 
-const SEED: Notification[] = [
-  {
-    id: "1",
-    title: "Nova demanda criada",
-    description: "Ajustes na landing page — Nexabee",
-    time: new Date(Date.now() - 5 * 60 * 1000),
-    color: "primary",
-  },
-  {
-    id: "2",
-    title: "Comentário em DEM-021",
-    description: "Ana adicionou uma observação sobre o Kanban.",
-    time: new Date(Date.now() - 42 * 60 * 1000),
-    color: "info",
-  },
-  {
-    id: "3",
-    title: "Cliente aprovou entrega",
-    description: "Sprint 08 marcada como concluída.",
-    time: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    read: true,
-    color: "success",
-  },
-];
-
-const DOT: Record<NonNullable<Notification["color"]>, string> = {
-  primary: "bg-primary",
-  success: "bg-success",
-  warning: "bg-warning",
-  info: "bg-info",
+const DOT: Record<string, string> = {
+  task_created: "bg-primary",
+  task_updated: "bg-info",
+  task_comment: "bg-info",
+  task_status_changed: "bg-success",
+  deadline_near: "bg-warning",
+  hours_low: "bg-warning",
+  mention: "bg-primary",
+  system: "bg-muted-foreground",
 };
 
 export function NotificationsMenu() {
-  const [items, setItems] = React.useState(SEED);
-  const unread = items.filter((i) => !i.read).length;
+  const qc = useQueryClient();
+
+  const { data: items = [] } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return data as NotificationRow[];
+    },
+  });
+
+  React.useEffect(() => {
+    const channel = supabase
+      .channel("notifications-feed")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
+  const markAll = useMutation({
+    mutationFn: async () => {
+      const ids = items.filter((n) => !n.read_at).map((n) => n.id);
+      if (ids.length === 0) return;
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const markOne = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("notifications")
+        .update({ read_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+  });
+
+  const unread = items.filter((i) => !i.read_at).length;
 
   return (
     <Popover>
@@ -68,7 +98,7 @@ export function NotificationsMenu() {
           <Bell />
           {unread > 0 && (
             <span className="absolute right-1.5 top-1.5 grid size-4 place-items-center rounded-full bg-primary text-[9px] font-bold text-primary-foreground">
-              {unread}
+              {unread > 9 ? "9+" : unread}
             </span>
           )}
         </Button>
@@ -77,58 +107,61 @@ export function NotificationsMenu() {
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Notificações</p>
-            <p className="text-xs text-muted-foreground">
-              {unread} não lidas
-            </p>
+            <p className="text-xs text-muted-foreground">{unread} não lidas</p>
           </div>
           <Button
             variant="ghost"
             size="sm"
             className="text-xs"
-            onClick={() =>
-              setItems((prev) => prev.map((n) => ({ ...n, read: true })))
-            }
+            disabled={unread === 0 || markAll.isPending}
+            onClick={() => markAll.mutate()}
           >
             <Check /> Marcar todas
           </Button>
         </div>
         <ScrollArea className="max-h-[420px]">
-          <ul className="divide-y divide-border">
-            {items.map((n) => (
-              <li
-                key={n.id}
-                className={cn(
-                  "flex gap-3 px-4 py-3 transition-colors hover:bg-accent/50",
-                  !n.read && "bg-primary/5",
-                )}
-              >
-                <span
-                  className={cn(
-                    "mt-1.5 size-2 shrink-0 rounded-full",
-                    DOT[n.color ?? "primary"],
-                  )}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{n.title}</p>
-                  <p className="line-clamp-2 text-xs text-muted-foreground">
-                    {n.description}
-                  </p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
-                    {formatDistanceToNow(n.time, {
-                      addSuffix: true,
-                      locale: ptBR,
-                    })}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
+          {items.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
+              Nenhuma notificação por aqui.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {items.map((n) => (
+                <li key={n.id}>
+                  <button
+                    type="button"
+                    onClick={() => !n.read_at && markOne.mutate(n.id)}
+                    className={cn(
+                      "flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-accent/50",
+                      !n.read_at && "bg-primary/5",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "mt-1.5 size-2 shrink-0 rounded-full",
+                        DOT[n.type as NotificationType] ?? "bg-primary",
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{n.title}</p>
+                      {n.body && (
+                        <p className="line-clamp-2 text-xs text-muted-foreground">
+                          {n.body}
+                        </p>
+                      )}
+                      <p className="mt-1 text-[10px] uppercase tracking-wider text-muted-foreground/70">
+                        {formatDistanceToNow(new Date(n.created_at), {
+                          addSuffix: true,
+                          locale: ptBR,
+                        })}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </ScrollArea>
-        <div className="border-t border-border px-4 py-2 text-center">
-          <Button variant="ghost" size="sm" className="w-full text-xs">
-            Ver todas as notificações
-          </Button>
-        </div>
       </PopoverContent>
     </Popover>
   );
