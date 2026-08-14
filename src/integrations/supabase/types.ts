@@ -746,6 +746,17 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
+      notify_task_audience: {
+        Args: {
+          _actor: string
+          _body: string
+          _include_client?: boolean
+          _task_id: string
+          _title: string
+          _type: Database["public"]["Enums"]["notification_type"]
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "developer" | "client"
