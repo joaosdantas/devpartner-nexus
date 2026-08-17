@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import {
   Popover,
@@ -7,6 +8,7 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface Workspace {
   id: string;
@@ -14,15 +16,57 @@ export interface Workspace {
   plan: string;
 }
 
-const WORKSPACES: Workspace[] = [
-  { id: "1", name: "DEV Partner", plan: "Enterprise" },
-  { id: "2", name: "Nexabee Cliente", plan: "Pro" },
-  { id: "3", name: "Atelier Studio", plan: "Starter" },
-];
+interface WorkspaceSwitcherProps {
+  userId?: string;
+  isStaff?: boolean;
+  currentClientId?: string;
+  onSelect?: (workspace: Workspace) => void;
+}
 
-export function WorkspaceSwitcher() {
-  const [current, setCurrent] = React.useState<Workspace>(WORKSPACES[0]);
+export function WorkspaceSwitcher({
+  userId,
+  isStaff = false,
+  currentClientId,
+  onSelect,
+}: WorkspaceSwitcherProps) {
   const [open, setOpen] = React.useState(false);
+
+  const { data: workspaces = [] } = useQuery({
+    queryKey: ["workspaces", userId, isStaff],
+    queryFn: async () => {
+      if (isStaff) {
+        const { data, error } = await supabase
+          .from("clients")
+          .select("id, company_name, plans(name)")
+          .order("company_name");
+        if (error) throw error;
+        return (data ?? []).map((c) => ({
+          id: c.id,
+          name: c.company_name,
+          plan: (c as { plans?: { name?: string } | null }).plans?.name ?? "—",
+        }));
+      }
+      if (!userId) return [];
+      const { data: memberships, error } = await supabase
+        .from("client_members")
+        .select("client_id, clients(id, company_name, plans(name))")
+        .eq("user_id", userId);
+      if (error) throw error;
+      return (memberships ?? []).map((m) => {
+        const client = (m as { clients?: { id: string; company_name: string; plans?: { name?: string } | null } | null }).clients;
+        return {
+          id: m.client_id,
+          name: client?.company_name ?? "—",
+          plan: client?.plans?.name ?? "—",
+        };
+      });
+    },
+    enabled: !!userId,
+  });
+
+  const current = workspaces.find((w) => w.id === currentClientId) ?? workspaces[0];
+
+  if (!current) return null;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -53,11 +97,11 @@ export function WorkspaceSwitcher() {
           Workspaces
         </p>
         <div className="space-y-0.5">
-          {WORKSPACES.map((w) => (
+          {workspaces.map((w) => (
             <button
               key={w.id}
               onClick={() => {
-                setCurrent(w);
+                onSelect?.(w);
                 setOpen(false);
               }}
               className={cn(
@@ -77,11 +121,11 @@ export function WorkspaceSwitcher() {
               {current.id === w.id && <Check className="size-4 text-primary" />}
             </button>
           ))}
-        </div>
-        <div className="mt-2 border-t border-border pt-2">
-          <Button variant="ghost" size="sm" className="w-full justify-start">
-            <Plus /> Criar workspace
-          </Button>
+          {workspaces.length === 0 && (
+            <p className="px-2 py-4 text-center text-xs text-muted-foreground">
+              Nenhum workspace encontrado
+            </p>
+          )}
         </div>
       </PopoverContent>
     </Popover>

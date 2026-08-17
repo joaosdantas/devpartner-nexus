@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+import { createAuthenticatedClient } from "@/integrations/supabase/auth-middleware";
 
 export type AppRole = "admin" | "manager" | "developer" | "client";
 
@@ -14,15 +15,10 @@ export interface SessionContext {
   clientName: string | null;
 }
 
-/**
- * Returns the authenticated user's profile, roles and (for clients) the
- * associated client workspace. Used to gate /admin/* vs /workspace/* routes
- * and to render the shell header without any mocked data.
- */
 export const getSessionContext = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<SessionContext> => {
-    const { supabase, userId, claims } = context;
+  .validator(z.object({ accessToken: z.string() }))
+  .handler(async ({ data }): Promise<SessionContext> => {
+    const { supabase, userId } = await createAuthenticatedClient(data.accessToken);
 
     const [{ data: profile }, { data: rolesRows }, { data: memberRow }] =
       await Promise.all([
@@ -44,7 +40,7 @@ export const getSessionContext = createServerFn({ method: "GET" })
 
     return {
       userId,
-      email: profile?.email ?? (claims?.email as string) ?? null,
+      email: profile?.email ?? null,
       fullName: profile?.full_name ?? null,
       avatarUrl: profile?.avatar_url ?? null,
       roles,

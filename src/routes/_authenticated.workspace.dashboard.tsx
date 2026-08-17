@@ -9,12 +9,16 @@ import { PriorityBadge } from "@/components/app/priority-badge";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card } from "@/components/ui/card";
 import { getWorkspaceDashboard } from "@/lib/dashboard.functions";
+import { getAccessToken } from "@/lib/auth-token";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const dashboardQuery = queryOptions({
   queryKey: ["workspace", "dashboard"],
-  queryFn: () => getWorkspaceDashboard(),
+  queryFn: async () => {
+    const accessToken = await getAccessToken();
+    return getWorkspaceDashboard({ data: { accessToken } });
+  },
 });
 
 export const Route = createFileRoute("/_authenticated/workspace/dashboard")({

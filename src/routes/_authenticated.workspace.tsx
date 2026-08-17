@@ -1,9 +1,11 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { getSessionContext } from "@/lib/session.functions";
+import { getAccessToken } from "@/lib/auth-token";
 
 export const Route = createFileRoute("/_authenticated/workspace")({
   beforeLoad: async () => {
-    const ctx = await getSessionContext();
+    const accessToken = await getAccessToken();
+    const ctx = await getSessionContext({ data: { accessToken } });
     // Staff always has access to /admin, redirect them there.
     if (ctx.isStaff && !ctx.clientId) {
       throw redirect({ to: "/admin/dashboard" });

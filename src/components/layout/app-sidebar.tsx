@@ -54,7 +54,7 @@ const ADMIN_GROUPS: NavGroup[] = [
     items: [
       { label: "Bee Assistant", to: "/admin/dashboard", icon: Sparkles },
       { label: "Mensagens", to: "/admin/dashboard", icon: MessageSquare },
-      { label: "Configurações", to: "/admin/dashboard", icon: Settings },
+      { label: "Configurações", to: "/admin/settings", icon: Settings },
     ],
   },
 ];

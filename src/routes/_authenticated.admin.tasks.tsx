@@ -1,7 +1,25 @@
-// Admin → Demandas: DataTable com filtros + Kanban por status.
+// Admin → Demandas: DataTable com filtros + Kanban por status (com drag-and-drop).
 import * as React from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { LayoutGrid, ListChecks, List as ListIcon, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/layout/app-shell";
@@ -28,6 +46,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
 import {
   KANBAN_COLUMNS,
@@ -42,6 +61,172 @@ type TaskRow = Database["public"]["Tables"]["tasks"]["Row"] & {
   clients: { company_name: string } | null;
   projects: { name: string; color: string } | null;
 };
+
+function SortableKanbanCard({
+  task,
+  onStatusChange,
+}: {
+  task: TaskRow;
+  onStatusChange: (id: string, status: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: task.id, data: { status: task.status } });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card className="cursor-grab p-3 active:cursor-grabbing">
+        <Link
+          to="/admin/tasks/$taskId"
+          params={{ taskId: task.id }}
+          className="block text-sm font-medium hover:text-primary"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {task.title}
+        </Link>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {task.clients?.company_name ?? "—"}
+        </p>
+        <div className="mt-2 flex items-center justify-between">
+          <PriorityBadge priority={task.priority as never} />
+          <StatusBadge
+            status={TASK_STATUS_VARIANT[task.status]}
+            label={TASK_STATUS_LABEL[task.status]}
+          />
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function KanbanBoard({
+  tasks,
+  onStatusChange,
+}: {
+  tasks: TaskRow[];
+  onStatusChange: (id: string, status: string) => void;
+}) {
+  const [activeId, setActiveId] = React.useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const activeTask = tasks.find((t) => t.id === activeId);
+
+  function handleDragStart(event: DragStartEvent) {
+    setActiveId(String(event.active.id));
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+
+    const activeTask = tasks.find((t) => t.id === active.id);
+    if (!activeTask) return;
+
+    // Determine target column from the droppable container
+    const overData = over.data.current;
+    let targetStatus: string;
+
+    if (overData?.status) {
+      // Dropped on a column container
+      targetStatus = overData.status;
+    } else {
+      // Dropped on another card — find its status
+      const overTask = tasks.find((t) => t.id === over.id);
+      targetStatus = overTask?.status ?? activeTask.status;
+    }
+
+    if (targetStatus !== activeTask.status) {
+      onStatusChange(activeTask.id, targetStatus);
+    }
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex gap-3 overflow-x-auto pb-2">
+        {KANBAN_COLUMNS.map((col) => {
+          const items = tasks.filter((t) => t.status === col.status);
+          return (
+            <KanbanColumn key={col.status} status={col.status} label={col.label} count={items.length}>
+              <SortableContext items={items.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                <div className="min-h-[200px] space-y-2 rounded-xl border border-dashed border-border/60 bg-card/30 p-2">
+                  {items.map((t) => (
+                    <SortableKanbanCard key={t.id} task={t} onStatusChange={onStatusChange} />
+                  ))}
+                  {items.length === 0 && (
+                    <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                      Vazio
+                    </p>
+                  )}
+                </div>
+              </SortableContext>
+            </KanbanColumn>
+          );
+        })}
+      </div>
+      <DragOverlay>
+        {activeTask ? (
+          <Card className="p-3 shadow-lg">
+            <p className="text-sm font-medium">{activeTask.title}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {activeTask.clients?.company_name ?? "—"}
+            </p>
+          </Card>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+function KanbanColumn({
+  status,
+  label,
+  count,
+  children,
+}: {
+  status: string;
+  label: string;
+  count: number;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useSortable({ id: `column-${status}`, data: { status } });
+
+  return (
+    <div className="w-[300px] shrink-0">
+      <div className="flex items-center justify-between px-2 pb-2">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {label}
+        </p>
+        <span className="rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">
+          {count}
+        </span>
+      </div>
+      <div
+        ref={setNodeRef}
+        className={cn(
+          "rounded-xl border border-dashed p-2 transition-colors",
+          isOver ? "border-primary/50 bg-primary/5" : "border-border/60 bg-card/30",
+        )}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/tasks")({
   head: () => ({
@@ -309,64 +494,7 @@ function TasksPage() {
             )}
           </Card>
         ) : (
-          <div className="flex gap-3 overflow-x-auto pb-2">
-            {KANBAN_COLUMNS.map((col) => {
-              const items = data.filter((t) => t.status === col.status);
-              return (
-                <div key={col.status} className="w-[300px] shrink-0">
-                  <div className="flex items-center justify-between px-2 pb-2">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {col.label}
-                    </p>
-                    <span className="rounded-md bg-muted/40 px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                      {items.length}
-                    </span>
-                  </div>
-                  <div className="min-h-[200px] space-y-2 rounded-xl border border-dashed border-border/60 bg-card/30 p-2">
-                    {items.map((t) => (
-                      <Card key={t.id} className="p-3">
-                        <Link
-                          to="/admin/tasks/$taskId"
-                          params={{ taskId: t.id }}
-                          className="block text-sm font-medium hover:text-primary"
-                        >
-                          {t.title}
-                        </Link>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {t.clients?.company_name ?? "—"}
-                        </p>
-                        <div className="mt-2 flex items-center justify-between">
-                          <PriorityBadge priority={t.priority as never} />
-                          <Select
-                            value={t.status}
-                            onValueChange={(v) =>
-                              updateStatus.mutate({ id: t.id, status: v })
-                            }
-                          >
-                            <SelectTrigger className="h-7 w-[130px] text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {TASK_STATUS_OPTIONS.map((o) => (
-                                <SelectItem key={o.value} value={o.value}>
-                                  {o.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </Card>
-                    ))}
-                    {items.length === 0 && (
-                      <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-                        Vazio
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <KanbanBoard tasks={data} onStatusChange={(id, status) => updateStatus.mutate({ id, status })} />
         )}
       </div>
 

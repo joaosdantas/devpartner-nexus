@@ -45,7 +45,11 @@ export function AppTopbar({
       </Sheet>
 
       <div className="hidden md:block">
-        <WorkspaceSwitcher />
+        <WorkspaceSwitcher
+          userId={session?.userId}
+          isStaff={session?.isStaff}
+          currentClientId={session?.clientId}
+        />
       </div>
 
       {breadcrumb && (

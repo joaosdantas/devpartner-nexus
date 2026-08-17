@@ -22,7 +22,16 @@ export const Route = createFileRoute("/auth")({
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();
     if (data.session) {
-      throw redirect({ to: search.redirect ?? ("/" as string) });
+      // Check role to redirect to correct dashboard
+      const userId = data.session.user.id;
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      const isStaff = (roles ?? []).some((r) =>
+        ["admin", "manager", "developer"].includes(r.role as string),
+      );
+      throw redirect({ to: isStaff ? "/admin/dashboard" : "/workspace/dashboard" });
     }
   },
   head: () => ({

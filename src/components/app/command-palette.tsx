@@ -2,8 +2,6 @@ import * as React from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   BarChart3,
-  Calendar,
-  FileText,
   FolderKanban,
   LayoutDashboard,
   ListChecks,
@@ -63,27 +61,24 @@ export function CommandPalette({ extraActions = [] }: CommandPaletteProps) {
       <CommandList>
         <CommandEmpty>Nenhum resultado.</CommandEmpty>
         <CommandGroup heading="Navegação">
-          <CommandItem onSelect={() => go("/dashboard")}>
+          <CommandItem onSelect={() => go("/admin/dashboard")}>
             <LayoutDashboard /> Dashboard
             <CommandShortcut>G D</CommandShortcut>
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard/cliente")}>
+          <CommandItem onSelect={() => go("/workspace/dashboard")}>
             <BarChart3 /> Dashboard do cliente
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
+          <CommandItem onSelect={() => go("/admin/tasks")}>
             <ListChecks /> Demandas
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
+          <CommandItem onSelect={() => go("/admin/projects")}>
             <FolderKanban /> Projetos
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
+          <CommandItem onSelect={() => go("/admin/clients")}>
             <Users /> Clientes
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
-            <Calendar /> Calendário
-          </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
-            <FileText /> Faturamento
+          <CommandItem onSelect={() => go("/admin/settings")}>
+            <Settings /> Configurações
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
@@ -99,7 +94,7 @@ export function CommandPalette({ extraActions = [] }: CommandPaletteProps) {
           <CommandItem>
             <Search /> Busca global
           </CommandItem>
-          <CommandItem onSelect={() => go("/dashboard")}>
+          <CommandItem onSelect={() => go("/admin/settings")}>
             <Settings /> Configurações
           </CommandItem>
         </CommandGroup>

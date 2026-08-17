@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
+import { createAuthenticatedClient } from "@/integrations/supabase/auth-middleware";
 
 export interface AdminDashboardData {
   totals: {
@@ -54,10 +55,12 @@ export interface WorkspaceDashboardData {
   }>;
 }
 
+const tokenSchema = z.object({ accessToken: z.string() });
+
 export const getAdminDashboard = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<AdminDashboardData> => {
-    const { supabase } = context;
+  .validator(tokenSchema)
+  .handler(async ({ data }): Promise<AdminDashboardData> => {
+    const { supabase } = await createAuthenticatedClient(data.accessToken);
 
     const monthStart = new Date();
     monthStart.setUTCDate(1);
@@ -148,9 +151,9 @@ export const getAdminDashboard = createServerFn({ method: "GET" })
   });
 
 export const getWorkspaceDashboard = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<WorkspaceDashboardData> => {
-    const { supabase, userId } = context;
+  .validator(tokenSchema)
+  .handler(async ({ data }): Promise<WorkspaceDashboardData> => {
+    const { supabase, userId } = await createAuthenticatedClient(data.accessToken);
 
     const { data: member } = await supabase
       .from("client_members")

@@ -8,12 +8,16 @@ import { PriorityBadge } from "@/components/app/priority-badge";
 import { EmptyState } from "@/components/app/empty-state";
 import { Card } from "@/components/ui/card";
 import { getAdminDashboard } from "@/lib/dashboard.functions";
+import { getAccessToken } from "@/lib/auth-token";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const dashboardQuery = queryOptions({
   queryKey: ["admin", "dashboard"],
-  queryFn: () => getAdminDashboard(),
+  queryFn: async () => {
+    const accessToken = await getAccessToken();
+    return getAdminDashboard({ data: { accessToken } });
+  },
 });
 
 export const Route = createFileRoute("/_authenticated/admin/dashboard")({

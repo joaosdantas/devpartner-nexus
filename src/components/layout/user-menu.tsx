@@ -69,10 +69,10 @@ export function UserMenu({
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
           <User /> Meu perfil
         </DropdownMenuItem>
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate({ to: "/profile" })}>
           <Settings /> Preferências
         </DropdownMenuItem>
         <DropdownMenuSeparator />

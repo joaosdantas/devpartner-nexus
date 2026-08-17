@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -6,12 +6,14 @@ import {
   CheckCircle2,
   Clock,
   ListChecks,
+  LogOut,
   Sparkles,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ensureDarkTheme } from "@/lib/theme";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -25,9 +27,20 @@ const highlights = [
 ];
 
 function LandingPage() {
+  const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
     ensureDarkTheme();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
   }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+  };
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
@@ -47,12 +60,25 @@ function LandingPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/auth">Sou cliente</Link>
-          </Button>
-          <Button variant="primary" size="sm" asChild>
-            <Link to="/auth">Entrar no workspace</Link>
-          </Button>
+          {isLoggedIn ? (
+            <>
+              <Button variant="primary" size="sm" asChild>
+                <Link to="/admin/dashboard">Dashboard</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                <LogOut className="mr-1.5 size-3.5" /> Sair
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/auth">Sou cliente</Link>
+              </Button>
+              <Button variant="primary" size="sm" asChild>
+                <Link to="/auth">Entrar no workspace</Link>
+              </Button>
+            </>
+          )}
         </div>
       </header>
 
@@ -77,12 +103,12 @@ function LandingPage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button variant="primary" size="lg" asChild>
-              <Link to="/auth">
+              <Link to={isLoggedIn ? "/admin/dashboard" : "/auth"}>
                 Ver dashboard admin <ArrowRight />
               </Link>
             </Button>
             <Button variant="secondary" size="lg" asChild>
-              <Link to="/auth">Ver visão do cliente</Link>
+              <Link to={isLoggedIn ? "/workspace/dashboard" : "/auth"}>Ver visão do cliente</Link>
             </Button>
           </div>
         </motion.div>

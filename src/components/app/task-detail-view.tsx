@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { MessageSquare, Pencil, Play, Square } from "lucide-react";
+import { MessageSquare, Paperclip, Pencil, Play, Square } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/app/status-badge";
 import { PriorityBadge } from "@/components/app/priority-badge";
 import { EmptyState } from "@/components/app/empty-state";
+import { TaskAttachments } from "@/components/app/task-attachments";
 import { TaskFormDialog } from "@/components/forms/task-form";
 import {
   Select,
@@ -290,6 +291,8 @@ export function TaskDetailView({ taskId, session, role }: Props) {
                 </div>
               </div>
             </Card>
+
+            <TaskAttachments taskId={taskId} userId={session.userId} />
           </div>
 
           <div className="space-y-6">
